@@ -1,3 +1,5 @@
+from sage.all import *
+from latties import *
 import re,sys
 from fractions import Fraction as Fr
 
@@ -16,5 +18,3 @@ B = mat().LLL()
 F = B.T() * B
 L, U = F.LU()
 D = U.diagonal()
-
-
