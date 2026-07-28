@@ -26,7 +26,15 @@ class Lattice:
     def determinant(self):
         return self.gram_matrix().determinant()
 
-def cholevsky_decompose(A_matrix):
-    if A_matrix != A_matrix.transpose():
+def LDL(A):
+    if A != A.transpose():
         raise ("Matrix's not symmetrical")
-    lt_matr = matrix(RR, n, n)
+    rang = A.nrows()
+    L = identity_matrix(RR, rang)
+    D = matrix(RR, rang)
+    for j in range(0, rang):
+        D[j][j] = A[j][j] - sum((L[j][k])**2 * D[k][k] for k in range(j))
+        for i in range(j+1, rang):
+            L[i][j] = (A[i][j] - sum(L[i][k] * L[j][k] * D[k][k] for k in range(j)))/D[j][j] 
+    D = diagonal_matrix(RR, D)
+    return L, D
