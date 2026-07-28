@@ -1,6 +1,5 @@
 from sage.all import *
 
-
 class Lattice:
     def __init__(self, basis):
         self.basis = basis.change_ring(ZZ)
@@ -30,19 +29,30 @@ class Lattice:
             self._det = self.F.determinant()
         return self._det
 
-    def finke-phoste(self, bound: int):
+    def finke_pohst(self, bound: int):
         s = []
         return s
 
-def LDL(A):
-    if A != A.transpose():
-        raise ("Matrix's not symmetrical")
-    rang = A.nrows()
-    L = identity_matrix(RR, rang)
-    D = matrix(RR, rang)
-    for j in range(0, rang):
-        D[j][j] = A[j][j] - sum((L[j][k])**2 * D[k][k] for k in range(j))
-        for i in range(j+1, rang):
-            L[i][j] = (A[i][j] - sum(L[i][k] * L[j][k] * D[k][k] for k in range(j)))/D[j][j] 
-    D = diagonal_matrix(RR, D)
-    return L, D
+    def ldl(self):
+        if self._ldl is not None:
+            return self._ldl
+
+        if self.F != self.F.transpose():
+            raise ValueError("Gram matrix is not symmetric")
+
+        rang = self._rank
+        L = identity_matrix(RR, rang)
+        d = [RR(0)] * rang
+
+        for j in range(rang):
+            d[j] = self.F[j, j] - sum((L[j, k])**2 * d[k] for k in range(j))
+            
+            if d[j] == 0:
+                raise ValueError("Zero pivot encountered, LDL decomposition non-existent or unstable")
+                
+            for i in range(j + 1, rang):
+                L[i, j] = (self.F[i, j] - sum(L[i, k] * L[j, k] * d[k] for k in range(j))) / d[j]
+
+        D = diagonal_matrix(RR, d)
+        self._ldl = (L, D)
+        return self._ldl
