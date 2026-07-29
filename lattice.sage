@@ -76,10 +76,6 @@ class Lattice:
         self._ldl = None
         return self
 
-    def finke_pohst(self, bound: int):
-        s = []
-        return s
-
     def ldl(self):
         if self._ldl is not None:
             return self._ldl
@@ -97,3 +93,32 @@ class Lattice:
         D = diagonal_matrix(RR, d)
         self._ldl = (L, D)
         return self._ldl
+
+    def finke_phost(self, bound: int = None, return_embedded: bool = False):
+        L, D = self.ldl()
+        n, d = self._rank, D.diagonal()
+        M = max(self.F.diagonal()) if bound is None else bound
+        x = [0] * n
+
+        def search(i, norm, fnz):
+            s = sum(L[j, i] * x[j] for j in range(i + 1, n))
+            R = sqrt(max(0, M - norm) / d[i])
+            lb = max(0, ceil(-s - R)) if fnz else ceil(-s - R)
+            
+            for v in range(lb, floor(-s + R) + 1):
+                x[i] = v
+                n_norm = norm + d[i] * (v + s)**2
+                if i == 0:
+                    if any(x):
+                        vec = vector(ZZ, x)
+                        yield vec
+                        yield -vec
+                else:
+                    yield from search(i - 1, n_norm, fnz and v == 0)
+
+        s = list(search(n - 1, 0, True))
+
+        if return_embedded:
+            return [self.embedded_vec(v) for v in s]
+
+        return s
