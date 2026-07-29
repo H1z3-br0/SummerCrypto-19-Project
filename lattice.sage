@@ -28,7 +28,7 @@ class Lattice:
         if self._det is None:
             self._det = self.F.determinant()
         return self._det
-    
+
     @staticmethod
     def _gso_vectors(B):
         n = len(B)
@@ -69,6 +69,8 @@ class Lattice:
                     swapped = True
                     break
             if not swapped:
+                break
+                
         self.basis = matrix(B).transpose().change_ring(ZZ)
         self.F = self.basis.transpose() * self.basis
         self._rank = self.basis.rank()
@@ -94,7 +96,9 @@ class Lattice:
         self._ldl = (L, D)
         return self._ldl
 
-    def finke_phost(self, bound: int = None, return_embedded: bool = False):
+    def finke_pohst(self, bound: int = None, return_embedded: bool = False):
+        self.lll()
+
         L, D = self.ldl()
         n, d = self._rank, D.diagonal()
         M = max(self.F.diagonal()) if bound is None else bound
