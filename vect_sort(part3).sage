@@ -1,6 +1,5 @@
 def same_norm(Gram,s):
     length = [0]*Gram.ncols()
-    n
     result =[[] for _ in range(len(Gram))]
     
     for ind in range(len(Gram)):
