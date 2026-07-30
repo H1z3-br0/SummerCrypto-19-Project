@@ -1,14 +1,15 @@
 def same_norm(Gram,s):
     length = [0]*Gram.ncols()
-    result =[[] for _ in range(len(Gram))]
+    result =[[] for _ in range(Gram.ncols())]
     
-    for ind in range(len(Gram)):
-        lenght[ind] = Gram[ind][ind]
-
+    for ind in range(Gram.ncols()):
+        length[ind] = Gram[ind, ind] 
+        
     for ind_i in range(len(length)):
         for ind_j in range(len(s)):
             v = s[ind_j]
-            if (v*Gram*v.column() == length[ind_i]):
+            
+            if (v*Gram*v.column())[0] == length[ind_i]: 
                 result[ind_i].append(v)
 
     return result
@@ -19,11 +20,12 @@ def allowed_vect(Gram, sn_res, found_vec_img, vect_ind, step):
         flag = True
         
         for ind_i in range(step - 1):
-            mult = u.dot_product(found_vec_img[ind_i] * Gram)
+            mult = u.dot_product(Gram * found_vec_img[ind_i])
+            
             if (Gram[vect_ind][ind_i] != mult):
                 flag = False
                 break
-            else: continue 
+            #else: continue 
                 
         if (flag):
             result.append(u)
