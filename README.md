@@ -88,8 +88,8 @@
 
 **Определение (Последовательные минимумы решётки).**
 $\mathcal{L}$ определяются следующим образом:
-- $\lambda_1(\mathcal{L}) = \min\limits_{x \in \mathcal{L}, x \neq 0} \lVert x \rVert = \min\limits_{x,y \in \mathcal{L}, x \neq y} \lVert x - y \rVert$;
-- $\lambda_i(\mathcal{L}) = \min\lbrace r : \mathcal{L}\text{ содержит } i \text{ линейно независимых векторов длины } \leq r\rbrace $.
+- $\lambda_1(\mathcal{L}) = \min\limits_{x \in \mathcal{L}, x \neq 0} \lVert x \rVert = \min\limits_{x,y \in \mathcal{L}, x \neq y} \lVert x - y \rVert$
+- $\lambda_i(\mathcal{L}) = \min\lbrace r : \mathcal{L}\text{ содержит } i \text{ линейно независимых векторов длины } \leq r\rbrace $
 Здесь $\lVert x \rVert$ обозначает стандартную евклидову норму в $\mathbb{Z}^n$:
 ```math
 \lVert x \rVert_2 = \sqrt{\sum_{j=1}^n x_j^2}
