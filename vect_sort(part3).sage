@@ -29,5 +29,15 @@ def allowed_vect(Gram, sn_res, found_vec_img, vect_ind, step):
             result.append(u)
 
     return result
-        
-    
+
+def auto_morph(Gram, found_vec_img):
+    u = found_vec_img[-1]
+    u_ind = len(found_vec_img) - 1
+
+    for ind_i in range(len(found_vec_img)):
+        mult = u.dot_product(Gram * found_vec_img[ind_i])
+        check = Gram[u_ind][ind_i]
+
+        if (mult!= check):
+            return False
+    return True
