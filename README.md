@@ -38,7 +38,7 @@ $$
 
 
 **Определение.**
-**Объёмом** решётки $\mathcal{L}$ называется величина $\operatorname{Vol}(\mathcal{L}) = \operatorname{Vol}(\operatorname{Span}(\mathcal{L})/\mathcal{L}) = |\det(B)|$, где $B$ — произвольный базис решётки $\mathcal{L}$.
+**Объёмом** решётки $\mathcal{L}$ называется величина $\mathrm{Vol}(\mathcal{L}) = \mathrm{Vol}(\mathrm{Span}(\mathcal{L})/\mathcal{L}) = |\det(B)|$, где $B$ — произвольный базис решётки $\mathcal{L}$.
 
 Также нам потребуются определения билинейных и квадратичных форм.
 
@@ -85,7 +85,7 @@ $$
 **Определение (Последовательные минимумы решётки).**
 $\mathcal{L}$ определяются следующим образом:
 - $\lambda_1(\mathcal{L}) = \min\limits_{x \in \mathcal{L}, x \neq 0} \|x\| = \min\limits_{x,y \in \mathcal{L}, x \neq y} \|x - y\|$;
-- $\lambda_i(\mathcal{L}) = \min\{r : \mathcal{L}$ содержит $i$ линейно независимых векторов длины $\leq r\}$.
+- $\lambda_i(\mathcal{L}) = \min\{r : \mathcal{L}\text{ содержит } i \text{ линейно независимых векторов длины } \leq r\}$.
 Здесь $\|x\|$ обозначает стандартную евклидову норму в $\mathbb{Z}^n$:
 $$
 \|x\|_2 = \sqrt{\sum_{j=1}^n x_j^2}
@@ -105,25 +105,25 @@ $\theta : \mathcal{L} \to \mathcal{L}$, такая что
 $$
 \Phi(\theta(x), \theta(y)) = \Phi(x, y) \quad \forall x, y \in \mathcal{L}.
 $$
-Группа всех автоморфизмов обозначается $\operatorname{Aut}(\mathcal{L})$.
+Группа всех автоморфизмов обозначается $\mathrm{Aut}(\mathcal{L})$.
 
 
 **Определение (Изоморфизм решеток).**
-Две решетки $L$, $L' \subseteq \mathbb{R}^n$ называются изоморфными, если существует некоторое ортонормированное преобразование $O \in {\cal O}_n(R)$, такое, что:
+Две решетки $L$, $L' \subseteq \mathbb{R}^n$ называются изоморфными, если существует некоторое ортонормированное преобразование $O \in \mathcal{O}_n(R)$, такое, что:
 $$
 L' = O \cdot L.
 $$
 
-Такое ортонормированное преобразование $O \in {\cal O}_n(\mathbb{R})$ иногда называют изометрией.
+Такое ортонормированное преобразование $O \in \mathcal{O}_n(\mathbb{R})$ иногда называют изометрией.
 
-В вычислительном плане работа производится с базисами решеток, а не с самой $L$. Решетка ранга больше 1 имеет бесконечно много базисов, которые отличаются унимодулярными базисными преобразованиями. То есть два базиса $B$, $B' \in \mathbb{R}^{n\times m}$ порождают изоморфные решетки, если существует некоторое ортонормированное преобразование $O \in {\cal O}_n(\mathbb{R})$ и некоторое унимодулярное $U \in GL_m(\mathbb{Z})$, такое, что:
+В вычислительном плане работа производится с базисами решеток, а не с самой $L$. Решетка ранга больше 1 имеет бесконечно много базисов, которые отличаются унимодулярными базисными преобразованиями. То есть два базиса $B$, $B' \in \mathbb{R}^{n\times m}$ порождают изоморфные решетки, если существует некоторое ортонормированное преобразование $O \in \mathcal{O}_n(\mathbb{R})$ и некоторое унимодулярное $U \in GL_m(\mathbb{Z})$, такое, что:
 $$
 B' = OBU.
 $$
 
 
 **Определение (Decision-LIP).**
-Даны два базиса $B$, $B' \in \mathbb{R}^{n\times m}$. Необходимо понять, существует ли изометрия $O \in {\cal O}_n(\mathbb{R})$ и изменение базиса $U \in GL_m(\mathbb{Z})$, такое, что:
+Даны два базиса $B$, $B' \in \mathbb{R}^{n\times m}$. Необходимо понять, существует ли изометрия $O \in \mathcal{O}_n(\mathbb{R})$ и изменение базиса $U \in GL_m(\mathbb{Z})$, такое, что:
 $$
 B' = OBU.
 $$
@@ -140,7 +140,7 @@ $$
 
 Число расширений $k$-частичного автоморфизма
 $$
-\operatorname{nbExt}(v_1,\dots,v_k)=|\{v\in SN_{k+1}:\Phi(v,v_j)=\Phi(b_{k+1},b_j),\;j=1,\dots,k\}|
+\mathrm{nbExt}(v_1,\dots,v_k)=|\{v\in SN_{k+1}:\Phi(v,v_j)=\Phi(b_{k+1},b_j),\;j=1,\dots,k\}|
 $$
 совпадает с мощностью множества $C_{k+1,k+1}$.
 
@@ -159,7 +159,7 @@ $$
 
 Fingerprint-тест: $k$-частичный автоморфизм $(v_1,\dots,v_k)$ может быть продолжен только тогда, когда
 $$
-\operatorname{nbExt}(v_1,\dots,v_k)=f_{k+1,k+1}.
+\mathrm{nbExt}(v_1,\dots,v_k)=f_{k+1,k+1}.
 $$
 Это позволяет отсекать бесперспективные ветви уже на ранних этапах поиска.
 
@@ -178,11 +178,11 @@ $$
 $$
 \Phi_1(x,y)=\Phi_2(g(x),g(y))\qquad\forall x,y.
 $$
-Множество всех таких отображений обозначается $\operatorname{Iso}(\mathcal{L}_1,\mathcal{L}_2)$.
+Множество всех таких отображений обозначается $\mathrm{Iso}(\mathcal{L}_1,\mathcal{L}_2)$.
 
 Ключевое наблюдение:
 $$
-\operatorname{Iso}(\mathcal{L}_1,\mathcal{L}_2)=\{g\circ\theta\mid\theta\in\operatorname{Aut}(\mathcal{L}_1)\},
+\mathrm{Iso}(\mathcal{L}_1,\mathcal{L}_2)=\{g\circ\theta\mid\theta\in\mathrm{Aut}(\mathcal{L}_1)\},
 $$
 где $g$ --- любая одна изометрия. Поэтому достаточно найти одну изометрию и все автоморфизмы первой решётки.
 
@@ -211,7 +211,7 @@ $$
 
 Алгоритм с fingerprint дополнительно использует fingerprint $f_1$ первой решётки: $k$-частичная изометрия продолжается только тогда, когда
 $$
-\operatorname{nbExt\text{-}iso}(v_1,\dots,v_k)=f_1[k+1,k+1].
+\mathrm{nbExt-iso}(v_1,\dots,v_k)=f_1[k+1,k+1].
 $$
 Это позволяет рано отсекать бесперспективные ветви.
 
@@ -280,7 +280,7 @@ $$
 **Построение $SN_i$**
 ```
 \Procedure{same-norm}{$F,S$}
-\State $D\leftarrow\operatorname{diag}(F)$
+\State $D\leftarrow\mathrm{diag}(F)$
 \For{$u\in S$}
 \If{$\Phi(u,u)\in D$}
 \State добавить $u$ во все $SN_i$ с соответствующей нормой
@@ -314,7 +314,7 @@ $$
 \While{$i\le n$ и есть неиспробованные кандидаты}
 \If{$i<n$}
 \For{каждый кандидат $v$ из $Stp$}
-\State $L\leftarrow\operatorname{nbExt}(F,SN,[V_1,\dots,V_i,v],i+1,i+1)$
+\State $L\leftarrow\mathrm{nbExt}(F,SN,[V_1,\dots,V_i,v],i+1,i+1)$
 \If{$L=f_{i+1,i+1}$}
 \State $V_i\leftarrow v$, $Stp\leftarrow L$, $i\leftarrow i+1$
 \State break
@@ -323,18 +323,18 @@ $$
 \Else
 \For{каждый кандидат $v$ из $Stp$}
 \If{$(V_1,\dots,V_{n-1},v)$ --- автоморфизм}
-\State добавить $(V_1,\dots,V_n)$ в $\operatorname{sol}$
+\State добавить $(V_1,\dots,V_n)$ в $\mathrm{sol}$
 \EndIf
 \EndFor
 \State backtrack
 \EndIf
 \EndWhile
-\State\Return $\operatorname{sol}$
+\State\Return $\mathrm{sol}$
 \EndProcedure
 ```
 
 
-**Все изометрии через одну изометрию и $\operatorname{Aut}(\mathcal{L}_1)$**
+**Все изометрии через одну изометрию и $\mathrm{Aut}(\mathcal{L}_1)$**
 ```
 \Procedure{algo-iso-auto}{$F_1,f_1,SN1,F_2,SN2$}
 \State $sol\leftarrow[]$
