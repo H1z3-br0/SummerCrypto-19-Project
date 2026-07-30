@@ -1,0 +1,546 @@
+
+Дадим основные определения из теории решёток.
+
+\begin{definition}
+    Пусть $v_1, v_2, \ldots, v_n \in \mathbb{R}^d$ — линейно независимые векторы. \textbf{Решёткой} $\mathcal{L}$ называется множество линейных комбинаций вида
+    \[
+    \mathcal{L} = \{ \alpha_1 v_1 + \alpha_2 v_2 + \ldots + \alpha_n v_n \mid \alpha_1, \alpha_2, \ldots, \alpha_n \in \mathbb{Z} \}.
+    \]
+    Числа $d$ и $n$ называются \textbf{размерностью} $\dim(\mathcal{L}(B))$ и \textbf{рангом} решётки соответственно. При $d = n$ решётка называется \textbf{полноранговой}.
+\end{definition}
+
+\begin{definition}
+    \textbf{Базисом решётки} $\mathcal{L}$ называется набор линейно независимых векторов $\mathcal{B}$, порождающий решётку. Соответствующая решётка обозначается через $\mathcal{L}(B)$.
+\end{definition}
+
+\begin{definition}
+    Матрица $U \in \mathbb{Z}^{n \times n}$ называется \textbf{унимодулярной}, если она обратима в группе $\mathbb{Z}^{n \times n}$. Определитель унимодулярной матрицы равен $\pm 1$.
+\end{definition}
+
+\begin{definition}
+    \textbf{Объёмом} решётки $\mathcal{L}$ называется величина $\operatorname{Vol}(\mathcal{L}) = \operatorname{Vol}(\operatorname{Span}(\mathcal{L})/\mathcal{L}) = |\det(B)|$, где $B$ — произвольный базис решётки $\mathcal{L}$.
+\end{definition}
+
+Также нам потребуются определения билинейных и квадратичных форм.
+
+\begin{definition}
+    Билинейная форма на решётке $\mathcal{L}$ это отображение $\Phi: \mathcal{L} \times \mathcal{L} \rightarrow \mathbb{Z}$, такое что $\forall u, v, w \in \mathcal{L}$ и для любого скаляра $\alpha \in \mathbb{Z}$:
+    \begin{itemize}
+      \item $\Phi(u, v + w) = \Phi(u, v) + \Phi(u, w);$
+      \item $\Phi(u + v, w) = \Phi(u, w) + \Phi(v, w);$
+      \item $\Phi(\alpha u, v) = \alpha \Phi(u, v); $
+      \item $\Phi(u, \alpha v) = \alpha \Phi(u, v)$
+    \end{itemize}
+\end{definition}
+
+Билинейная форма называется \textbf{симметричной}, если $\Phi(x, y) = \Phi(y, x)$ для всех $x, y \in \mathcal{L}$.
+
+\begin{definition}
+    Билинейная форма $\Phi$ называется положительно определенной, если 
+    $$
+        \forall x \neq 0\text{ }\Phi(x, x) > 0
+    $$
+\end{definition}
+
+В этой работе мы будем считать, что на решётке $\mathcal{L} = \{ Bx: x \in \mathbb{Z}^{n}, n \in \mathbb{N} \}$ симметричная положительная билинейная форма определяется следующим образом.
+
+Пусть $u = B x,v = By$ вектора решётки $\mathcal{L}$. Тогда определим 
+$$
+    \Phi(x, y) = x^{T} B^{T} B y
+$$
+
+Заметим, что $F = B^{T} B$ - это матрица Грама.
+
+\begin{definition}
+    Квадратичная форма -- это отображение $Q: x \mapsto \Phi(x, x)$, где $\Phi$ -- билинейная форма.
+\end{definition}
+
+Под коротким вектором решетки $\mathcal{L}$ заданной базисом $B$ мы понимаем вектор $v$, норма которого не превосходит максимума из норм базисных векторов. Все короткие вектора решетки образуют множество $S = \{ v \in \mathcal(L) :  \Phi(v, v) \leq M\}$, где $M$ — максимальная из норм базисных векторов.
+
+\begin{statement}
+    Множество $S$, определенное выше - конечно
+\end{statement}
+\begin{proof}
+    Доказательство можно найти в \cite{maloguemfo2018algorithms}.
+\end{proof}
+
+\begin{definition}[Последовательные минимумы решётки]
+    $\mathcal{L}$ определяются следующим образом:
+    \begin{itemize}
+        \item $\lambda_1(\mathcal{L}) = \min\limits_{x \in \mathcal{L}, x \neq 0} \|x\| = \min\limits_{x,y \in \mathcal{L}, x \neq y} \|x - y\|$;
+        \item $\lambda_i(\mathcal{L}) = \min\{r : \mathcal{L}$ содержит $i$ линейно независимых векторов длины $\leq r\}$.
+    \end{itemize}
+    Здесь $\|x\|$ обозначает стандартную евклидову норму в $\mathbb{Z}^n$:
+\[
+\|x\|_2 = \sqrt{\sum_{j=1}^n x_j^2}
+\]
+\end{definition}
+
+Сформулируем задачи из теории решёток, которые понадобятся нам при описании криптосистемы и реализации атак на неё.
+
+\begin{definition}[Shortest Vector Problem (SVP)]
+    Дан базис $B$, найти кратчайший ненулевой вектор в решётке $\mathcal{L}(B)$, то есть такой ненулевой вектор $v \in \mathcal{L}(B)$, что $\|v\| = \lambda_1(\mathcal{L})$.
+\end{definition}
+
+\begin{definition}[Автоморфизм решётки]
+    Пусть $(\mathcal{L}, \Phi)$ — решётка. 
+    Автоморфизмом решётки называется $\mathbb{Z}$-линейная биекция 
+    $\theta : \mathcal{L} \to \mathcal{L}$, такая что
+    \[
+    \Phi(\theta(x), \theta(y)) = \Phi(x, y) \quad \forall x, y \in \mathcal{L}.
+    \]
+    Группа всех автоморфизмов обозначается $\operatorname{Aut}(\mathcal{L})$.
+\end{definition}
+
+\begin{definition}[Изоморфизм решеток]
+    Две решетки $L$, $L' \subseteq \mathbb{R}^n$ называются изоморфными, если существует некоторое ортонормированное преобразование $O \in {\cal O}_n(R)$, такое, что:
+    $$L' = O \cdot L.$$
+\end{definition}
+
+Такое ортонормированное преобразование $O \in {\cal O}_n(\mathbb{R})$ иногда называют изометрией.
+
+В вычислительном плане работа производится с базисами решеток, а не с самой $L$. Решетка ранга больше 1 имеет бесконечно много базисов, которые отличаются унимодулярными базисными преобразованиями. То есть два базиса $B$, $B' \in \mathbb{R}^{n\times m}$ порождают изоморфные решетки, если существует некоторое ортонормированное преобразование $O \in {\cal O}_n(\mathbb{R})$ и некоторое унимодулярное $U \in GL_m(\mathbb{Z})$, такое, что:
+$$B' = OBU.$$
+
+НL'} = O \cdot \mathcal{L}$.
+\end{definition}
+
+\begin{definition}[Decision-LIP]
+    Даны два базиса $B$, $B' \in \mathbb{R}^{n\times m}$. Необходимо понять, существует ли изометрия $O \in {\cal O}_n(\mathbb{R})$ и изменение базиса $U \in GL_m(\mathbb{Z})$, такое, что:
+    $$B' = OBU.$$
+\end{definition}
+ + 1)\binom{4\lfloor Me \rfloor + n - 1}{4\lfloor Me \rfloor},
+$$
+
+а также верна следующая
+
+\begin{theorem}
+    Пусть \(\mathcal{L}\) — решётка с матрицей Грама \(F = (F_{ij})_{1 \leq i,j \leq n}\). Пусть \(e^{-1}\) — нижняя граница для элементов \(l_{\varepsilon, \varepsilon}\) (\(1 \leq \varepsilon \leq n\)). Пусть \(M\) — максимальная норма базисных векторов решётки \(\mathcal{L}\). Тогда алгоритм вычисления коротких векторов решётки \(\mathcal{L}\) (с использованием разложения Холецкого) использует не более
+
+ � расширений $k$-частичного автоморфизма
+$$
+\operatorname{nbExt}(v_1,\dots,v_k)=|\{v\in SN_{k+1}:\Phi(v,v_j)=\Phi(b_{k+1},b_j),\;j=1,\dots,k\}|
+$$
+совпадает с мощностью множества $C_{k+1,k+1}$.
+
+\subsection{Fingerprint (отпечаток)}
+
+Fingerprint --- верхнетреугольная матрица $f=(f_{ki})$,
+$$
+    f_{ki}=\begin{cases}
+    0,&i<k,\\
+    |\{v\in SN_i:\Phi(v,b_j)=\Phi(b_i,b_j),\;j=1,\dots,k-1\}|,&i\ge k.
+    \end{cases}
+$$
+Элемент $f_{k+1,k+1}$ равен числу расширений тривиального $k$-частичного автоморфизма $(b_1,\dots,b_k)$.  
+При вычислении $f$ базис переупорядочивается так, чтобы на каждом шаге выбирался вектор с минимальным числом кандидатов (ускоряет поиск с возвратом).
+
+Fingerprint-тест: $k$-частичный автоморфизм $(v_1,\dots,v_k)$ может быть продолжен только тогда, когда
+$$
+\operatorname{nbExt}(v_1,\dots,v_k)=f_{k+1,k+1}.
+$$
+Это позволяет отсекать бесперспективные ветви уже на ранних этапах поиска.
+
+\subsection{Наивный поиск с возвратом vs. поиск с возвратом + fingerprint}
+
+Наивный алгоритм перебирает все возможные частичные наборы кандидатов и на каждом шаге проверяет лишь сохранение скалярных произведений.  
+Алгоритм с fingerprint дополнительно применяет fingerprint-тест, существенно сокращая дерево поиска.
+
+В разделе \ref{Algorithms} приведен псевдокод алгоритма с fingerprint.
+
+\section{Изометрии решеток}
+
+Напомним, что изометрия двух решёток $(\mathcal{L}_1,\Phi_1)$ и $(\mathcal{L}_2,\Phi_2)$ --- это $\mathbb{Z}$-линейная биекция $g:\mathcal{L}_1\to\mathcal{L}_2$, сохраняющая формы:
+$$
+\Phi_1(x,y)=\Phi_2(g(x),g(y))\qquad\forall x,y.
+$$
+Множество всех таких отображений обозначается $\operatorname{Iso}(\mathcal{L}_1,\mathcal{L}_2)$.
+
+Ключевое наблюдение:
+$$
+\operatorname{Iso}(\mathcal{L}_1,\mathcal{L}_2)=\{g\circ\theta\mid\theta\in\operatorname{Aut}(\mathcal{L}_1)\},
+$$
+где $g$ --- любая одна изометрия. Поэтому достаточно найти одну изометрию и все автоморфизмы первой решётки.
+
+\subsection{Короткие векторы и кандидатные образы}
+
+Короткие векторы второй решётки берутся относительно нормы первой:
+$$
+S_2=\{v\in\mathcal{L}_2:\Phi_2(v,v)\le M_1\}.
+$$
+Множества векторов той же нормы:
+$$
+SN2_i=\{v\in S_2:\Phi_2(v,v)=\Phi_1(b_i,b_i)\}.
+$$
+На шаге $k$ кандидатный образ $C_{ki}$ --- любой $c\in SN2_i$, удовлетворяющий
+$$
+\Phi_2(c,v_j)=\Phi_1(b_i,b_j)\qquad(j=1,\dots,k,\;j\neq i).
+$$
+
+Алгоритмы построения $SN2_i$ и $C_{ki}$ полностью аналогичны случаю автоморфизмов, только скалярные произведения вычисляются по $\Phi_2$, а нормы сравниваются с диагональю $F_1$.
+
+\subsection{Наивный алгоритм и алгоритм с fingerprint}
+
+Наивный поиск с возвратом перебирает частичные изометрии, проверяя сохранение скалярных произведений.
+
+Алгоритм с fingerprint дополнительно использует fingerprint $f_1$ первой решётки: $k$-частичная изометрия продолжается только тогда, когда
+$$
+\operatorname{nbExt\text{-}iso}(v_1,\dots,v_k)=f_1[k+1,k+1].
+$$
+Это позволяет рано отсекать бесперспективные ветви.
+
+Оба алгоритма могут возвращать либо все изометрии, либо только одну (флаг \texttt{one-iso}).
+
+\subsection{Практический метод (самый эффективный)}
+
+Самый компактный и практически полезный способ --- найти одну изометрию и размножить её автоморфизмами первой решётки.
+
+В секции \ref{Algorithms} представлен псевдокод алгоритма нахождения изометрий.
+
+Этот метод сочетает скорость fingerprint-поиска одной изометрии с уже вычисленной группой автоморфизмов и на практике оказывается наиболее эффективным.
+
+\section{Заключение}
+
+П�ния Холецкого}
+\label{alg:short}
+\begin{algorithmic}[1]
+\Procedure{$S-\text{elements}$}{$F, M$}
+    \State $F^* \gets \text{LLL}(F)$
+    \State $L \gets \text{разложение Холецкого}(F^*)$
+    \State $n \gets \text{число столбцов в } L$
+    \State $x \gets [x_1, \cdots, x_n], fillx_n \gets 0$
+    \State Вычислить $Lb_n \gets \left[ -\dfrac{\sqrt{M}}{l_{nn}} \right]$, $Ub_n \gets \left[ \dfrac{\sqrt{M}}{l_{nn}} \right]$
+    \State Положить $x_n \gets Lb_n$, $N_n \gets l_{nn} x_n$
+    \State Положить $U_n \gets 0$, $Y_n \gets 0$, и $k \gets n - 1$
+    \While{$x_n \le Ub_n$}
+        \If{$fillx_k = 0$}
+            \State Вычислить $N_k, U_k$ и $Y_k$ (используя формулы (1), (2) и (3))
+            \State Положить $x_k \gets Lb_k$
+            \State $fillx_k \gets 1$
+        \Else
+            \State $x_k \gets x_k + 1$
+            \If{$x_k \le Ub_k$}
+                \State $k \gets k - 1$
+            \Else
+                \State $fillx_k \gets 0$
+                \State $k \gets k + 1$
+            \EndIf
+        \EndIf
+        \If{$k = 0$}
+            \While{$x_1 \le Ub_1$}
+                \If{$x = \text{нулевой вектор}$}
+                    \State append($x, S$)
+                    \State \Return{$S$}
+                \Else
+                    \State append($x, S$)
+                    \State append($-x, S$)
+                \EndIf
+                \State $x_1 \gets x_1 + 1$
+            \EndWhile
+            \State $fillx_1 \gets 0$
+            \State $k \gets 1$
+        \EndIf
+    \EndWhile
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+\caption{Построение $SN_i$}
+\begin{algorithmic}[1]
+\Procedure{same-norm}{$F,S$}
+\State $D\leftarrow\operatorname{diag}(F)$
+\For{$u\in S$}
+\If{$\Phi(u,u)\in D$}
+\State добавить $u$ во все $SN_i$ с соответствующей нормой
+\EndIf
+\EndFor
+\State\Return $SN$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+\caption{Построение $C_{ki}$}
+\begin{algorithmic}[1]
+\Procedure{cand-vect}{$F,SN,[v_1,\dots,v_{k-1}],k,i$}
+\If{$i<k$}\State\Return $\emptyset$
+\Else
+\For{$u\in SN_i$}
+\If{$\Phi(u,v_j)=F_{ij}$ для всех $j=1,\dots,k-1$}
+\State добавить $u$ в $C_i$
+\EndIf
+\EndFor
+\EndIf
+\State\Return $C_i$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+\caption{Автоморфизмы с fingerprint}
+\begin{algorithmic}[1]
+\Procedure{auto}{$F,SN,f$}
+\State $Stp\leftarrow SN_1$, $i\leftarrow1$
+\While{$i\le n$ и есть неиспробованные кандидаты}
+\If{$i<n$}
+\For{каждый кандидат $v$ из $Stp$}
+\State $L\leftarrow\operatorname{nbExt}(F,SN,[V_1,\dots,V_i,v],i+1,i+1)$
+\If{$L=f_{i+1,i+1}$}
+\State $V_i\leftarrow v$, $Stp\leftarrow L$, $i\leftarrow i+1$
+\State break
+\EndIf
+\EndFor
+\Else
+\For{каждый кандидат $v$ из $Stp$}
+\If{$(V_1,\dots,V_{n-1},v)$ --- автоморфизм}
+\State добавить $(V_1,\dots,V_n)$ в $\operatorname{sol}$
+\EndIf
+\EndFor
+\State backtrack
+\EndIf
+\EndWhile
+\State\Return $\operatorname{sol}$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+\caption{Все изометрии через одну изометрию и $\operatorname{Aut}(\mathcal{L}_1)$}
+\begin{algorithmic}[1]
+\Procedure{algo-iso-auto}{$F_1,f_1,SN1,F_2,SN2$}
+\State $sol\leftarrow[]$
+\State $g\leftarrow$ \Call{algo-iso-fingerprint}{$F_1,f_1,F_2,SN2,\texttt{True}$}
+\Comment{одна изометрия}
+\State $\textit{List-auto1}\leftarrow$ \Call{auto}{$F_1,SN1,f_1$}
+\Comment{все автоморфизмы $\mathcal{L}_1$}
+\For{$\theta\in\textit{List-auto1}$}
+\State добавить $\theta\circ g$ в $sol$
+\EndFor
+\State\Return $sol$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+ 
+\end{document}ОТОМ НАПИШЕМ
+
+\end{abstractK}
+
+\renewcommand\refname{\center \textnormal{\normalsize{ЛИТЕРАТУРА}}}
+%Список литературы
+
+\bibliographystyle{unsrt}
+\bibliography{literature}
+
+\bf{Кураторы исследования:} \rm{\\
+Куценко Александр Владимирович --- к.ф.-м.н., старший преподаватель кафедры теоретической кибернетики ММФ НГУ; }
+
+\section{Приложения}\label{Algorithms}
+
+\begin{algorithm}[H]
+\caption{Получение множества коротких векторов с помощью разлож�   \[\mathcal{O}\left(n^2\left((2\lfloor \sqrt{Me} \rfloor + 1)\binom{4\lfloor Me \rfloor + n - 1}{4\lfloor Me \rfloor} + 1\right)\right)\]
+арифметических операций.
+\end{theorem}
+
+В работе \cite{maloguemfo2018algorithms} проведены некоторые экспериментальные запуски данного алгоритма. Там явно прослеживается экспоненциальный рост времени работы алгоритма в зависимости от мощности множества $S$.
+
+\begin{remark}
+    Те же шаги можно использовать для описания метода вычисления коротких векторов с помощью $LDL^T$-разложения  вместо разложения Холецкого.  Этот метод лучше, так как позволяет избежать извлечения квадратного корня, используемого при разложении Холецкого, и работать с приближенными значениями.  Кроме того, его лучше использовать, если матрица не является положительно определенной.
+\end{remark}
+
+\section{Автоморфизмы решёток (алгоритм Plesken--Souvignier)}
+
+Напомним, что автоморфизм решётки $(\mathcal{L},\Phi)$ --- это $\mathbb{Z}$-линейная биекция $\theta:\mathcal{L}\to\mathcal{L}$, сохраняющая билинейную форму:
+$$
+\Phi(x,y)=\Phi(\theta(x),\theta(y))\qquad\forall x,y.
+$$
+Группа $\operatorname{Aut}(\mathcal{L})$ полностью определяется наборами «хороших образов» базисных векторов $(b_1,\dots,b_n)$:
+$$
+\Phi(v_i,v_j)=\Phi(b_i,b_j)\qquad(1\le i,j\le n).
+$$
+Все такие наборы ищутся среди коротких векторов $S=\{v\in\mathcal{L}:\Phi(v,v)\le M\}$.
+
+\subsection{Кандидатные образы}
+
+Для каждого $i$ вводится множество векторов той же нормы, что и $b_i$:
+$$
+SN_i=\{v\in S:\Phi(v,v)=\Phi(b_i,b_i)\}.
+$$
+На шаге $k$ кандидатным образом $C_{ki}$ вектора $b_i$ называется любой $c\in SN_i$, удовлетворяющий условиям скалярных произведений
+$$
+\Phi(c,v_j)=\Phi(b_i,b_j)\qquad(j=1,\dots,k,\;j\neq i),
+$$
+где $(v_1,\dots,v_k)$ --- уже найденный $k$-частичный автоморфизм.
+
+В разделе \ref{Algorithms} приведён псевдокод алгоритмов построения $SN_i$ и построения $C_{ki}$
+
+Числ�
+Помимо прочего определим разложение Холецкого.
+
+\begin{definition}
+    Разложение Холецкого симметричной положительно определённой матрицы $A$ с действительными коэффициентами -- представление $A$ в виде $A = L L^T$, где матрица $L$ является нижнетреугольной матрицей с действительными положительными коэффициентами на главной диагонали.
+\end{definition}
+
+\begin{definition}
+    $LDL^T$-разложением вещественной симметричной положительно определённой матрицы $A$ называется разложение вида $A = LDL^T$, где $L$ — нижняя унитреугольная матрица (т.е. треугольная матрица с единицами на диагонали) с вещественными элементами, $L^T$ — транспонированная матрица к $L$, а $D$ — диагональная матрица.
+\end{definition}
+
+\section{Вычисление коротких векторов}
+
+Для нахождения коротких векторов решётки используется алгоритм из работы \cite{maloguemfo2018algorithms}. В его основе лежат алгоритм LLL и алгоритм  Finke-Pohst, а также разложение Холецкого. Для начала приведём вспомогательные формулы:
+
+\begin{equation}
+U_k = \sum_{j=k+1}^n \left( \sum_{i=j}^n l_{ij}x_i \right)^2, \quad U_n = 0 \tag{1}
+\end{equation}
+
+\begin{equation}
+Y_k = \sum_{i=k+1}^n l_{ik}x_i, \quad Y_n = 0 \tag{2}
+\end{equation}
+
+\begin{equation}
+\begin{cases} 
+Lb_k = \left[ \frac{1}{l_{kk}} \left[ -\sqrt{M - U_k} - Y_k \right] \right] \\
+Ub_k = \left[ \frac{1}{l_{kk}} \left[ \sqrt{M - U_k} - Y_k \right] \right]
+\end{cases} \tag{3}
+\end{equation}
+
+Сам же алгоритм приведён в разделе \ref{Algorithms}.
+
+Заметим, что число генерируемых этим алгоритмом векторов ограничено сверху константой
+
+$$
+    (2\lfloor \sqrt{Me} \rfloor абор векторов $(v_1, \dots, v_n)$ из $\mathcal{L}_2$ называется \emph{хорошим образом} базиса $B$ при изометрии, если для всех $1 \le i, j \le n$ выполняется
+\[
+\Phi_2(v_i, v_j) = \Phi_1(b_i, b_j).
+\]
+Такой набор определяет изометрию $g: \mathcal{L}_1 \to \mathcal{L}_2$ с $g(b_i) = v_i$.
+\end{definition}
+
+\begin{definition}[Частичная изометрия]
+\textit{Частичной изометрией} порядка $k$ называется частичное отображение $(v_1, \dots, v_k)$, где $v_i \in \mathcal{L}_2$, которое переводит $b_i$ в $v_i$ для $1 \le i \le k$ и удовлетворяет
+\[
+\Phi_2(v_i, v_j) = \Phi_1(b_i, b_j) \quad \text{для всех } 1 \le i, j \le k.
+\]
+При $k = n$ такой набор является (полной) изометрией между решётками.
+\end{definition}
+
+Из идеи изоморфизма вытекают две вычислительные проблемы. Одна из них основана на сложности определения того, порождают ли два заданных базиса изоморфные решетки. Другая же касается трудности нахождения изоморфизма, если он существует.
+
+\begin{definition}[Lattice Isomorphism Problem, LIP]
+    Даны две изоморфные решётки $\mathcal{L}, \mathcal{L'} \subset \mathbb{R}^{n}$, найти ортонормированное преобразование $O \in \mathcal{O}_{n}(\mathbb{R})$, такое что $\mathcal{\begin{definition}[Хороший образ базиса для автоморфизма]
+Пусть $(\mathcal{L}, \Phi)$ — решётка с базисом $B = (b_1, \dots, b_n)$ и матрицей Грама $F = (\Phi(b_i, b_j))$.
+Набор векторов $(v_1, \dots, v_n)$ из $\mathcal{L}$ называется \emph{хорошим образом} базиса $B$ относительно автоморфизма, если для всех $1 \le i, j \le n$ выполняется
+\[
+\Phi(v_i, v_j) = \Phi(b_i, b_j) = F_{ij}.
+\]
+Такой набор определяет автоморфизм $\theta$ решётки, действующий по правилу $\theta(b_i) = v_i$.
+\end{definition}
+
+\begin{definition}[Частичный автоморфизм]
+\textit{Частичным автоморфизмом} порядка $k$ называется частичное отображение $(v_1, \dots, v_k)$, где $v_i \in \mathcal{L}$, которое переводит $b_i$ в $v_i$ для $1 \le i \le k$ и удовлетворяет условию
+\[
+\Phi(v_i, v_j) = \Phi(b_i, b_j) = F_{ij} \quad \text{для всех } 1 \le i, j \le k.
+\]
+При $k = n$ такой набор является (полным) автоморфизмом решётки.
+\end{definition}
+
+\begin{definition}[Хороший образ базиса для изометрии]
+Пусть даны две решётки $(\mathcal{L}_1, \Phi_1)$ с базисом $B = (b_1, \dots, b_n)$ и $(\mathcal{L}_2, \Phi_2)$ с базисом $D = (d_1, \dots, d_n)$.
+\documentclass[a4paper,12pt]{article}
+\usepackage[english,russian]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage{latexsym,mathrsfs}
+\usepackage{stmaryrd, enumitem}
+\usepackage{amsthm,amsfonts,amssymb,amsmath}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{geometry}
+\usepackage{tempora}
+\usepackage[pdftex]{graphicx}
+\usepackage{comment}
+\usepackage{xcolor}
+
+% \usepackage{pythonhighlight}
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+
+\lstset{frame=tb,
+  language=Python,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\geometry{top=17mm}  \geometry{bottom=20mm}
+\geometry{left=17mm} \geometry{right=17mm}
+\linespread{1.1}
+\parindent=5mm
+
+
+\def\titleK#1{\begin{center}{\textbf {#1}}\end{center}}
+\def\authorK#1{\begin{center}{#1}\end{center}}
+
+
+
+\newenvironment{abstractK}{}
+
+
+
+\newtheorem{lemma}{Лемма}
+\newtheorem{statement}{Утверждение}
+\newtheorem{theorem}{Теорема}
+\newtheorem{corollary}{Следствие}
+\newtheorem{proposition}{Предложение}
+\newtheorem{remark}{Замечание}
+\theoremstyle{definition}
+\newtheorem{definition}{Определение}
+\theoremstyle{definition}
+\newtheorem{question}{Вопрос}
+\theoremstyle{definition}
+\newtheorem{conjecture}{Гипотеза}
+
+%ВАЖНО: Не менять и не добавлять ничего выше этой строки.
+%Изменения вносить только внутри окружения \begin{document}\end{document}
+
+\begin{document}
+
+\titleK{Оптимизация алгоритмов проверки изоморфизма решеток для задач постквантовой криптографии}
+\authorK{Д. Д. Дьячков$^{1}$, Д. С. Лякишев$^{2}$, М. И. Разумовский$^{3}$, А. М. Сабреков$^{1}$,\\ Т. А. Хаирнуров$^{4}$, И. А. Чобанов$^{5}$, Д. Г. Юргенсон$^{4}$\\
+$^{1}$НИЯУ МИФИ  \\ $^{2}$МГТУ им. Н. Э. Баумана \\ $^{3}$АНО ВО ИДК \\ $^{4}$ЯрГУ им. П. Г. Демидова \\ $^{5}$СУНЦ МГУ \\ {\bf E-mail:} david.dyachkov@mail.ru, lds22u237@student.bmstu.ru, mrazumovskiy007@gmail.com, artemsabr@yandex.ru, t.hairnurov@uniyar.ac.ru, pkd12305@gmail.com, yurgensondarius17@mail.ru}
+
+\begin{abstract}
+      ПОТОМ НАПИШЕМ
+ \\
+\\{\bf Ключевые слова:} \textit{ решётки, разложение Холецкого, $L D L^{T}$-разложение, LLL, LIP.} 
+ \end{abstract}
+
+\begin{abstractK}
+
+\vspace{0.5em} 
+
+\section{Введение}
+
+Стремительное развитие квантовых вычислений ставит под угрозу безопасность многих классических криптографических систем, основанных на сложности факторизации целых чисел и дискретного логарифмирования. В связи с этим особую актуальность приобретает разработка и анализ постквантовых криптографических алгоритмов, устойчивых к атакам с использованием квантовых компьютеров. Одним из наиболее перспективных направлений в этой области является криптография на решётках, которая предлагает широкий спектр задач, предположительно сложных даже для квантовых вычислителей \cite{malygina2023postquant}, \cite{boer2025lattice}.
+
+В то время как большинство современных решёточных криптосистем (таких как Kyber или Dilithium) опираются на вычислительную сложность задач обучения с ошибками (LWE) или задачи нахождения кратчайшего вектора (SVP), существует отдельный класс конструкций, базирующихся на задаче изоморфизма решёток (Lattice Isomorphism Problem, LIP). Задача LIP заключается в нахождении ортонормированного преобразования, переводящего одну решётку в другую. Недавние работы, в частности исследование \cite{ducas2022lattice}, продемонстрировали возможность построения криптографических примитивов на основе LIP, что стимулировало новый виток интереса к этой задаче и необходимости глубокого анализа её вычислительной сложности.
+
+Центральным инструментом для решения LIP являются алгоритмы нахождения группы автоморфизмов решётки, среди которых наиболее известным и широко применяемым является алгоритм Plesken–Souvignier \cite{plesken1997computing}. В работе \cite{maloguemfo2018algorithms} приводится модифицированная версия этого алгоритма, которая позволяет находить изоморфизм между решётками. Однако практическая применимость этого алгоритма в контексте криптоанализа наталкивается на вычислительные ограничения. Для достижения приемлемой производительности критически важным является использование методов редукции, таких как алгоритмы LLL и BKZ, которые, однако, сами по себе являются ресурсоёмкими \cite{shary2025curse}.
+
+Основная проблема заключается в том, что алгоритм Plesken–Souvignier, несмотря на свою теоретическую значимость, имеет высокую вычислительную стоимость. Дальнейшее исследование должно быть направлено на поиск способов ускорения этого алгоритма, в частности, за счёт совершенствования этапа редукции.
+
+\section{Цели и задачи}
+
+Целью проекта является исследование современных алгоритмов проверки изоморфизма решеток, программная реализация алгоритма Plesken–Souvignier и разработка методов повышения его эффективности. В рамках проекта предполагается изучить математическую постановку задачи изоморфизма решеток и существующие алгоритмы ее решения, реализовать базовую версию алгоритма проверки изоморфизма и провести экспериментальное исследование его вычислительной эффективности. Особое внимание планируется уделить оптимизации наиболее ресурсоемких этапов алгоритма, включая предварительную редукцию базиса с использованием алгоритмов LLL и BKZ. Результатом проекта станет программная реализация алгоритма проверки изоморфизма решеток, исследование эффективности предложенных методов оптимизации и оценка возможности их применения при анализе перспективных криптографических конструкций, основанных на задаче изоморфизма решеток.
+
+\section{Постквантовая криптография на решётках}
+
