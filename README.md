@@ -154,9 +154,10 @@ B' = OBU.
 
 Fingerprint — верхнетреугольная матрица $f=(f_{ki})$,
 ```math
-f_{ki}=\begin{cases}
+f_{ki}=
+\begin{cases}
 0 & i<k \\
-|\{v\in SN_i:\Phi(v,b_j)=\Phi(b_i,b_j),\;j=1,\dots,k-1\}| & i\ge k
+\lvert\lbrace v\in SN_i:\Phi(v,b_j)=\Phi(b_i,b_j),\;j=1,\dots,k-1\rbrace\rvert & i\ge k
 \end{cases}
 ```
 Элемент $f_{k+1,k+1}$ равен числу расширений тривиального $k$-частичного автоморфизма $(b_1,\dots,b_k)$.
