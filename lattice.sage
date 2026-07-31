@@ -73,7 +73,7 @@ class Lattice:
             for i in range(1, n):
                 for j in range(i - 1, -1, -1):
                     mu_ij = B[i].dot_product(Bstar[j]) / Bstar[j].dot_product(Bstar[j])
-                    B[i] = B[i] - mu_ij.floor() * B[j]
+                    B[i] = B[i] - mu_ij.round() * B[j]
             Bstar, mu = Lattice._gso_vectors(B)
             swapped = False
             for i in range(n - 1):
