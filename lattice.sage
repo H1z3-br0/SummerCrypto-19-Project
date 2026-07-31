@@ -25,6 +25,10 @@ class Lattice:
     def embedded_vec(self, coordinate_vec):
         return self.basis * vector(ZZ, coordinate_vec)
 
+    @staticmethod
+    def bilinear(F, x, y):
+        return x.dot_product(F * y)
+
     def bilinear_form(self, x, y):
         return vector(ZZ, x) * self.F * vector(ZZ, y)
 
@@ -170,13 +174,16 @@ class Lattice:
         return SN2
 
     def cand_vect_iso(self, other_lattice, SN2, part_iso, k, i):
+        # Algorithm 11: C_i^k = {u in SN2_i : Phi2(u, v_j) = Phi1(b_i, b_j), j = 1..k-1}.
+        # Условие сравнивается со строкой i-1 (нормы кандидата), а не k-1;
+        # при i == k они совпадают, поэтому диагональный случай не менялся.
         if i < k:
             return []
         C_i = []
         for u in SN2[i - 1]:
             ok = True
             for j in range(k - 1):
-                if other_lattice.bilinear_form(u, part_iso[j]) != self.F[k - 1, j]:
+                if other_lattice.bilinear_form(u, part_iso[j]) != self.F[i - 1, j]:
                     ok = False
                     break
             if ok:
@@ -193,9 +200,32 @@ class Lattice:
             return []
         candidates = []
         for u in SN_i:
-            if all(bilinear(F, u, kpartial[j]) == F[i, j] for j in range(k)):
+            if all(Lattice.bilinear(F, u, kpartial[j]) == F[i, j] for j in range(k)):
                 candidates.append(u)
         return candidates
+
+    @staticmethod
+    def is_i_partial(F1, F2, part_iso):
+        # Algorithm 12: проверяет, что [v1,...,vi] - i-частичная изометрия.
+        # Предполагается, что [v1,...,v_{i-1}] уже проверен, поэтому сверяется
+        # только последний вектор со всеми предыдущими (включая его норму).
+        #
+        # INPUT:
+        #     F1       -- Gram matrix of L1
+        #     F2       -- Gram matrix of L2
+        #     part_iso -- [v1,...,vi]
+        #
+        # OUTPUT:
+        #     True or False
+        i = len(part_iso)
+        for j in range(i):
+            if Lattice.bilinear(F2, part_iso[i - 1], part_iso[j]) != F1[i - 1, j]:
+                return False
+        return True
+
+    def auto_morph(self, part_iso):
+        # Тот же тест для автоморфизмов: L2 == L1 == self.
+        return Lattice.is_i_partial(self.F, self.F, part_iso)
 
     def get_fingerprint_and_perm(self, SN):
         n = self._rank
@@ -313,32 +343,3 @@ class Lattice:
             M_final.set_column(i, M_new.column(inv_perm[i]))
 
         return True, M_final
-
-
-def bilinear(F, x, y):
-    return x.dot_product(F * y)
-
-# Algorithm 12.
-# Check whether [v1,...,vi] is an i-partial isometry.
-
-# INPUT:
-#     F1       -- Gram matrix of L1
-#     F2       -- Gram matrix of L2
-#     part_iso -- [v1,...,vi]
-
-# OUTPUT:
-#     True or False
-
-def is_i_partial(F1, F2, part_iso):
-    i = len(part_iso)
-
-    ans = True
-
-    for j in range(i):
-
-        if bilinear(F2, part_iso[i - 1], part_iso[j]) != F1[i - 1, j]:
-            ans = False
-            break
-
-    return ans
-
