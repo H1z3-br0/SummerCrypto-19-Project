@@ -3,10 +3,18 @@ from sage.all import *
 class Lattice:
     def __init__(self, basis):
         self.basis = basis.change_ring(ZZ)
+        self.n = self.basis.ncols()
         self.F = self.basis.transpose() * self.basis
         self._rank = self.basis.rank()
+        self._reset_cache()
+
+    def _reset_cache(self):
         self._det = None
         self._ldl = None
+        self._ldl_exact = None
+        self._gso = None
+        self._lll_delta = None
+        self._short_vectors = {}
 
     def rank(self):
         return self._rank
@@ -47,10 +55,14 @@ class Lattice:
         return Bstar, mu
 
     def gso(self):
-        return Lattice._gso_vectors(self.basis.columns())
+        if self._gso is None:
+            self._gso = Lattice._gso_vectors(self.basis.columns())
+        return self._gso
 
     def lll(self, delta=3 / 4):
-        n = self.basis.ncols()
+        if self._lll_delta == delta:
+            return self
+        n = self.n
         B = self.basis.columns()
         while True:
             Bstar, mu = Lattice._gso_vectors(B)
@@ -74,56 +86,75 @@ class Lattice:
         self.basis = matrix(B).transpose().change_ring(ZZ)
         self.F = self.basis.transpose() * self.basis
         self._rank = self.basis.rank()
-        self._det = None
-        self._ldl = None
+        self._reset_cache()
+        self._lll_delta = delta
         return self
 
-    def ldl(self):
-        if self._ldl is not None:
+    def ldl(self, exact=False):
+        # exact=True считает разложение над QQ: F целочисленна, поэтому оно
+        # точное. Нужно перечислению коротких векторов, где округление RR
+        # теряет векторы с нормой ровно на границе.
+        if exact and self._ldl_exact is not None:
+            return self._ldl_exact
+        if not exact and self._ldl is not None:
             return self._ldl
         if self.F != self.F.transpose():
             raise ValueError("Gram matrix is not symmetric")
         rang = self._rank
-        L = identity_matrix(RR, rang)
-        d = [RR(0)] * rang
+        ring = QQ if exact else RR
+        L = identity_matrix(ring, rang)
+        d = [ring(0)] * rang
         for j in range(rang):
             d[j] = self.F[j, j] - sum((L[j, k])**2 * d[k] for k in range(j))
             if d[j] == 0:
                 raise ValueError("Zero pivot encountered, LDL decomposition non-existent or unstable")
             for i in range(j + 1, rang):
                 L[i, j] = (self.F[i, j] - sum(L[i, k] * L[j, k] * d[k] for k in range(j))) / d[j]
-        D = diagonal_matrix(RR, d)
+        D = diagonal_matrix(ring, d)
+        if exact:
+            self._ldl_exact = (L, D)
+            return self._ldl_exact
         self._ldl = (L, D)
         return self._ldl
 
     def finke_pohst(self, bound: int = None, return_embedded: bool = False):
         self.lll()
-        L, D = self.ldl()
-        n, d = self._rank, D.diagonal()
         M = max(self.F.diagonal()) if bound is None else bound
-        x = [0] * n
 
-        def search(i, norm, fnz):
-            s = sum(L[j, i] * x[j] for j in range(i + 1, n))
-            R = sqrt(max(0, M - norm) / d[i])
-            lb = max(0, ceil(-s - R)) if fnz else ceil(-s - R)
-            
-            for v in range(lb, floor(-s + R) + 1):
-                x[i] = v
-                n_norm = norm + d[i] * (v + s)**2
-                if i == 0:
-                    if any(x):
-                        vec = vector(ZZ, x)
-                        yield vec
-                        yield -vec
-                else:
-                    yield from search(i - 1, n_norm, fnz and v == 0)
+        s = self._short_vectors.get(M)
+        if s is None:
+            L, D = self.ldl(exact=True)
+            n, d = self._rank, D.diagonal()
+            x = [0] * n
 
-        s = list(search(n - 1, 0, True))
+            def search(i, norm, fnz):
+                s = sum(L[j, i] * x[j] for j in range(i + 1, n))
+                # R берется в RR, поэтому диапазон расширяется на 1 в каждую
+                # сторону, а отбор идет по точному сравнению n_norm <= M.
+                R = RR(max(0, M - norm) / d[i]).sqrt()
+                lb = ceil(-s - R) - 1
+                if fnz:
+                    lb = max(0, lb)
+
+                for v in range(lb, floor(-s + R) + 2):
+                    x[i] = v
+                    n_norm = norm + d[i] * (v + s)**2
+                    if n_norm > M:
+                        continue
+                    if i == 0:
+                        if any(x):
+                            vec = vector(ZZ, x)
+                            yield vec
+                            yield -vec
+                    else:
+                        yield from search(i - 1, n_norm, fnz and v == 0)
+
+            s = list(search(n - 1, 0, True))
+            self._short_vectors[M] = s
 
         if return_embedded:
             return [self.embedded_vec(v) for v in s]
-        return s
+        return [copy(v) for v in s]
 
 
     def same_norm(self, other_lattice, S2):
@@ -152,15 +183,17 @@ class Lattice:
                 C_i.append(u)
         return C_i
 
-    def nb_ext(self, SN_i, kpartial, k, i):
-        return len(self.cand_vect(SN_i, kpartial, k, i))
+    def nb_ext(self, SN_i, kpartial, k, i, F=None):
+        return len(self.cand_vect(SN_i, kpartial, k, i, F))
 
-    def cand_vect(self, SN_i, kpartial, k, i):
+    def cand_vect(self, SN_i, kpartial, k, i, F=None):
+        if F is None:
+            F = self.F
         if i < k:
             return []
         candidates = []
         for u in SN_i:
-            if all(self.bilinear_form(u, kpartial[j]) == self.F[i, j] for j in range(k)):
+            if all(bilinear(F, u, kpartial[j]) == F[i, j] for j in range(k)):
                 candidates.append(u)
         return candidates
 
@@ -175,7 +208,6 @@ class Lattice:
             new_lst = []
             for v in lst:
                 v_copy = copy(v)
-                v_copy.set_immutable(False)
                 new_lst.append(v_copy)
             SN_new.append(new_lst)
             
@@ -184,7 +216,7 @@ class Lattice:
         for k in range(n):
             kpartial = b_trivial[:k] 
             for i in range(k, n):
-                f_matrix[k, i] = self.nb_ext(SN_new[i], kpartial, k, i)
+                f_matrix[k, i] = self.nb_ext(SN_new[i], kpartial, k, i, F_new)
                 
             valid_vals = [(f_matrix[k, i], i) for i in range(k, n) if f_matrix[k, i] > 0]
             
@@ -202,8 +234,8 @@ class Lattice:
                     
         for lst in SN_new:
             for v in lst:
-                v.set_immutable(True)
-                
+                v.set_immutable()
+
         return f_matrix, F_new, SN_new, perm
 
     def is_isometric(self, other):
@@ -211,60 +243,63 @@ class Lattice:
         Проверяет, изометричны ли две решетки (self и other).
         Возвращает (True, M), если изоморфизм найден, где M - матрица преобразования.
         Возвращает (False, None), если изоморфизма не существует.
+        Обе решетки приводятся LLL, M выражена в приведенных базисах.
         """
         if self.rank() != other.rank() or self.determinant() != other.determinant():
             return False, None
 
+        self.lll()
         n = self.rank()
-        F1 = self.F
 
-        M1 = max(F1.diagonal())
-        S2 = other.finke_pohst(bound=M1, return_embedded=False) 
+        M1 = max(self.F.diagonal())
+        S1 = self.finke_pohst(bound=M1, return_embedded=False)
+        S2 = other.finke_pohst(bound=M1, return_embedded=False)
 
+        # Отпечаток - инвариант L1, поэтому считается по ее собственным коротким
+        # векторам S1. SN2 переставляется тем же perm, но без перестановки
+        # координат: его векторы записаны в базисе L2, а перестановка меняет
+        # порядок базисных векторов L1.
+        SN1 = self.same_norm(self, S1)
         SN2 = self.same_norm(other, S2)
 
-        fingerprint, F1_new, SN2_new, perm = self.get_fingerprint_and_perm(SN2)
+        fingerprint, F1_new, SN1_new, perm = self.get_fingerprint_and_perm(SN1)
+        SN2_new = [SN2[perm[k]] for k in range(n)]
 
         inv_perm = [0] * n
         for i, p in enumerate(perm):
             inv_perm[p] = i
 
-        def backtrack(k, partial_iso):
+        F2 = other.F
+        F1_rows = [F1_new.row(i) for i in range(n)]
+
+        def candidates(k, prods, limit=None):
+            row = F1_rows[k]
+            found = []
+            for u in SN2_new[k]:
+                if all(u.dot_product(prods[j]) == row[j] for j in range(k)):
+                    found.append(u)
+                    if limit is not None and len(found) > limit:
+                        break
+            return found
+
+        def backtrack(k, partial_iso, prods):
             if k == n:
                 return partial_iso
 
-            candidates = []
-            for u in SN2_new[k]:
-                valid = True
-                for j in range(k):
-                    if other.bilinear_form(u, partial_iso[j]) != F1_new[k, j]:
-                        valid = False
-                        break
-                if valid:
-                    candidates.append(u)
-
-            for v in candidates:
+            for v in candidates(k, prods):
                 new_partial = partial_iso + [v]
+                new_prods = prods + [F2 * v]
 
                 if k + 1 < n:
-                    ext_count = 0
-                    for u in SN2_new[k+1]:
-                        valid_ext = True
-                        for j in range(k + 1):
-                            if other.bilinear_form(u, new_partial[j]) != F1_new[k+1, j]:
-                                valid_ext = False
-                                break
-                        if valid_ext:
-                            ext_count += 1
-                    
-                    if ext_count != fingerprint[k+1, k+1]:
+                    target = fingerprint[k + 1, k + 1]
+                    if len(candidates(k + 1, new_prods, limit=target)) != target:
                         continue
 
-                res = backtrack(k + 1, new_partial)
+                res = backtrack(k + 1, new_partial, new_prods)
                 if res is not None:
                     return res
             return None
-        partial_iso_coords = backtrack(0, [])
+        partial_iso_coords = backtrack(0, [], [])
 
         if partial_iso_coords is None:
             return False, None
@@ -278,3 +313,32 @@ class Lattice:
             M_final.set_column(i, M_new.column(inv_perm[i]))
 
         return True, M_final
+
+
+def bilinear(F, x, y):
+    return x.dot_product(F * y)
+
+# Algorithm 12.
+# Check whether [v1,...,vi] is an i-partial isometry.
+
+# INPUT:
+#     F1       -- Gram matrix of L1
+#     F2       -- Gram matrix of L2
+#     part_iso -- [v1,...,vi]
+
+# OUTPUT:
+#     True or False
+
+def is_i_partial(F1, F2, part_iso):
+    i = len(part_iso)
+
+    ans = True
+
+    for j in range(i):
+
+        if bilinear(F2, part_iso[i - 1], part_iso[j]) != F1[i - 1, j]:
+            ans = False
+            break
+
+    return ans
+
